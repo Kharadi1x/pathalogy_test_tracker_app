@@ -22,19 +22,16 @@ const worker = new Worker('uploads', async job => {
     const res = await axios.post((process.env.OCR_URL || 'http://ocr:8000') + '/extract', formData, { headers: formData.getHeaders() });
     const text: string = res.data.text || '';
 
-    // Simple parsing heuristic: find lines like "TestName: value"
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const parsed: any = {};
-    for (const l of lines) {
-      const m = l.match(/^([A-Za-z0-9 ]+):\s*(.+)$/);
-      if (m) parsed[m[1].trim()] = m[2].trim();
-    }
+    // Use specialized parser to extract structured fields from OCR text
+    const { parseTextToFields } = await import('../ocr/parser');
+    const parsedReport = parseTextToFields(text);
 
-    const patientName = body.patientName || parsed['Patient'] || parsed['Name'] || '';
-    const testName = body.testName || parsed['Test'] || parsed['Test Name'] || 'Unknown Test';
-    const result = body.result || parsed['Result'] || '';
-    const referenceRange = body.referenceRange || parsed['Reference Range'] || '';
-    const dateOfTest = body.dateOfTest ? new Date(body.dateOfTest) : (parsed['Date'] ? new Date(parsed['Date']) : new Date());
+    const patientName = body.patientName || parsedReport.patientName || '';
+    const primaryTest = parsedReport.tests?.[0] || {};
+    const testName = body.testName || primaryTest.testName || 'Unknown Test';
+    const result = body.result || primaryTest.result || '';
+    const referenceRange = body.referenceRange || primaryTest.referenceRange || '';
+    const dateOfTest = body.dateOfTest ? new Date(body.dateOfTest) : (parsedReport.dateOfTest ? new Date(parsedReport.dateOfTest) : new Date());
 
     // encrypt patient name and create/find patient
     const encName = encryptName(patientName || '');

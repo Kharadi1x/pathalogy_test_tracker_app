@@ -1,0 +1,5 @@
+Name: Jane Smith
+Laboratory: Central Path
+Dated: 01/06/2025
+Glucose: 6.1 mmol/L (4.0 - 6.0)
+HbA1c 6.5 % (4.0-5.6)
