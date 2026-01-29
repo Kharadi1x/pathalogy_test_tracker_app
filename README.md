@@ -13,7 +13,18 @@ Quick start
 2. Install dependencies: `pnpm install`
 3. Start services: `docker compose up --build -d`
 4. Run migrations: `cd backend && pnpm prisma migrate dev --name init`
-5. Start dev servers (if desired): `pnpm -w dev`
+5. Seed admin user (optional): `cd backend && ADMIN_EMAIL=admin@example.com ADMIN_PASS=admin123 pnpm prisma db seed`
+6. Start dev servers (if desired): `pnpm -w dev`
+
+Authentication
+
+- Register: POST `/api/auth/register` { email, name, password, role }
+- Login: POST `/api/auth/login` { email, password } -> returns JWT
+- Use `Authorization: Bearer <token>` header for protected endpoints (e.g., `/api/upload`, `/api/patients/:id/tests`)
+
+AES Key
+
+- Generate AES key: `./scripts/generate_aes_key.sh` and set `AES_KEY` in `.env` and `backend/.env` (base64)
 
 Security
 
