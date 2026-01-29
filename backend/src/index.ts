@@ -18,6 +18,8 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/ocr', ocrRouter);
 import patientsRouter from './routes/patients';
 app.use('/api/patients', patientsRouter);
+import jobsRouter from './routes/jobs';
+app.use('/api/jobs', jobsRouter);
 
 // example protected route
 app.get('/api/profile', requireAuth, async (req: any, res) => {

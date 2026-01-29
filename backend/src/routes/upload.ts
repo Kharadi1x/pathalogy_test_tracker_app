@@ -31,11 +31,11 @@ router.post('/', upload.single('file'), async (req, res) => {
       }
     });
 
-    // if file uploaded, forward to OCR service asynchronously
+    // if file uploaded, enqueue background job to process it
     if (req.file) {
-      axios.post('http://ocr:8000/extract', null, {
-        headers: { 'content-type': 'multipart/form-data' }
-      }).catch(err => console.error('OCR proxy error', err.message));
+      const filePath = req.file.path;
+      const job = await (await import('../queue')).uploadQueue.add('process', { filePath, body: req.body });
+      console.log('enqueued job', job.id);
     }
 
     res.json({ ok: true, testId: test.id });
