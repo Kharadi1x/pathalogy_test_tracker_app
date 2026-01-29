@@ -1,0 +1,12 @@
+node_modules/
+.env
+.DS_Store
+dist/
+coverage/
+.vscode/
+**/*.pyc
+__pycache__/
+ocr/venv/
+frontend/node_modules/
+backend/node_modules/
+**/.env.local

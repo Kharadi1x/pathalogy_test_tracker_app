@@ -1,0 +1,16 @@
+{
+  "name": "pathalogy_test_tracker_app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "ocr"
+  ],
+  "scripts": {
+    "dev": "pnpm -w -C frontend dev & pnpm -w -C backend dev",
+    "start": "pnpm -w -C backend start & pnpm -w -C frontend start",
+    "lint": "pnpm -w -C frontend lint && pnpm -w -C backend lint",
+    "test": "pnpm -w -C frontend test && pnpm -w -C backend test"
+  }
+}

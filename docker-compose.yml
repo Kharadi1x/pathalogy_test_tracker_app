@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pathology_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/pathology_db
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '4000:4000'
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+  ocr:
+    build: ./ocr
+    ports:
+      - '8000:8000'
+volumes:
+  db_data:
