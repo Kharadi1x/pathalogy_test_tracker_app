@@ -8,7 +8,7 @@ import { requireAuth } from './middleware/auth';
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 app.use(express.json());
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));
@@ -26,6 +26,11 @@ app.get('/api/profile', requireAuth, async (req: any, res) => {
   res.json({ id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role });
 });
 
-app.listen(process.env.PORT || 4000, () => {
-  console.log('Backend running on port', process.env.PORT || 4000);
-});
+// Only listen when not running tests so tests can import the app without starting a server
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(process.env.PORT || 4000, () => {
+    console.log('Backend running on port', process.env.PORT || 4000);
+  });
+}
+
+export default app;

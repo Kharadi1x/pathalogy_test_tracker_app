@@ -1,0 +1,5 @@
+Patient Name: Bob
+Laboratory: Quick Labs
+Date: 2025-09-05
+COVID PCR: Positive
+Hep B Surface Ag: Negative

@@ -4,11 +4,13 @@ import prisma from '../prismaClient';
 
 export interface AuthedRequest extends Request {
   user?: any;
+  params?: any; // allow flexible params in test builds
 }
 
 export async function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
   try {
-    const auth = req.headers.authorization?.split(' ')[1];
+    const authHeader = (req as any).headers?.authorization;
+    const auth = authHeader?.split(' ')[1];
     if (!auth) return res.status(401).json({ error: 'unauthorized' });
     const decoded: any = jwt.verify(auth, process.env.JWT_SECRET || 'change_me');
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });

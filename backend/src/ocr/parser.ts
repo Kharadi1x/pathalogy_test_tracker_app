@@ -22,6 +22,15 @@ export function parseTextToFields(text: string): ParsedReport {
   const labRegex = /^(?:Lab|Laboratory|Lab Name)[:\s]+(.+)$/i;
 
   for (const line of lines) {
+    // skip lines that start with a number (likely ranges or stray values)
+    if (/^[0-9]/.test(line)) continue;
+
+    // DEBUG: log line and basic matches when running tests (helps debugging)
+    if (process.env.NODE_ENV === 'test') {
+      // eslint-disable-next-line no-console
+      console.log('PARSE LINE:', JSON.stringify(line));
+    }
+
     // Patient
     const pm = line.match(patientRegex);
     if (pm) {
@@ -42,17 +51,74 @@ export function parseTextToFields(text: string): ParsedReport {
     }
 
     // Test line heuristics: "TestName 5.6 unit (4.0-6.0)" or "TestName: 5.6"
-    // Try colon-separated first
-    const colonMatch = line.match(/^([^:\-]{2,60})[:\-]\s*([0-9]+(?:\.[0-9]+)?)(?:\s*([^\(]+))?(?:\s*\(([^\)]+)\))?$/);
-    if (colonMatch) {
-      parsed.tests.push({ testName: colonMatch[1].trim(), result: colonMatch[2].trim(), unit: (colonMatch[3] || '').trim() || undefined, referenceRange: (colonMatch[4] || '').trim() || undefined });
+    // Try colon-separated first (require name to start with letter)
+    // General numeric-first parsing: find first numeric token and treat preceding text as test name
+    // Attempt colon-based non-numeric results first (e.g., "COVID PCR: Positive")
+    // match either colon separator or a spaced hyphen (" - "), but avoid matching range hyphens like "4.0-6.0"
+    const colonAnyMatch = line.match(/^(.+?)(?::|\s-\s)\s*(.+?)(?:\s*\(([^\)]+)\))?$/);
+    if (colonAnyMatch) {
+      const name = colonAnyMatch[1].trim();
+      const rest = colonAnyMatch[2].trim();
+      const parenMatch = colonAnyMatch[3] ? colonAnyMatch[3].trim() : undefined;
+
+      // find all numeric tokens with indices
+      const numRegex = /([<>]?\s*[0-9]+(?:\.[0-9]+)?)/g;
+      const nums: Array<{ val: string; idx: number }> = [];
+      let mm;
+      while ((mm = numRegex.exec(rest)) !== null) {
+        const numberText = mm[1].replace(/\s+/g, '');
+        const idx = mm.index + mm[0].indexOf(mm[1]);
+        nums.push({ val: numberText, idx });
+      }
+
+      if (nums.length) {
+        // prefer numeric token occurring before any '(' in rest (if present)
+        const parenIdxRest = rest.indexOf('(');
+        let chosen = nums[0];
+        if (parenIdxRest >= 0) {
+          const cand = nums.find(n => n.idx < parenIdxRest);
+          if (cand) chosen = cand;
+        }
+        if (process.env.NODE_ENV === 'test') {
+          // eslint-disable-next-line no-console
+          console.log('colon nums', nums, 'chosen', chosen, 'rest', rest);
+        }
+        const result = chosen.val;
+        const after = rest.slice(chosen.idx + result.length).trim();
+        const unit = after.split('(')[0].trim() || undefined;
+        parsed.tests.push({ testName: name, result, unit, referenceRange: parenMatch });
+      } else {
+        parsed.tests.push({ testName: name, result: rest, unit: undefined, referenceRange: parenMatch });
+      }
       continue;
     }
 
-    // Space-separated number match
-    const spacedMatch = line.match(/^(.{2,60}?)\s+([0-9]+(?:\.[0-9]+)?)(?:\s*([a-zA-Z%\/]+))?(?:\s*\(([^\)]+)\))?$/);
-    if (spacedMatch) {
-      parsed.tests.push({ testName: spacedMatch[1].trim(), result: spacedMatch[2].trim(), unit: spacedMatch[3]?.trim(), referenceRange: spacedMatch[4]?.trim() });
+    // General numeric-first parsing: find all standalone numeric tokens (accept inequalities)
+    const numRegex = /(?:^|\s)([<>]?\s*[0-9]+(?:\.[0-9]+)?)/g;
+    const numsAll: Array<{ val: string; idx: number }> = [];
+    let mm2;
+    while ((mm2 = numRegex.exec(line)) !== null) {
+      const val = mm2[1].replace(/\s+/g, '');
+      const idx = mm2.index + mm2[0].indexOf(mm2[1]);
+      numsAll.push({ val, idx });
+    }
+    if (numsAll.length) {
+      const parenIdx = line.indexOf('(');
+      let chosen = numsAll[0];
+      if (parenIdx >= 0) {
+        const cand = numsAll.find(n => n.idx < parenIdx);
+        if (cand) chosen = cand;
+        else chosen = numsAll[0];
+      }
+      const result = chosen.val;
+      const idx = chosen.idx;
+      let namePart = line.slice(0, idx).replace(/[:\-\s]*$/g, '').trim();
+      namePart = namePart.replace(/[:\-]$/g, '').trim();
+      const after = line.slice(idx + result.length).trim();
+      const unit = after.split('(')[0].trim() || undefined;
+      const parenMatch = line.match(/\(([^\)]+)\)/);
+      const referenceRange = parenMatch ? parenMatch[1].trim() : undefined;
+      parsed.tests.push({ testName: namePart, result, unit, referenceRange });
       continue;
     }
 

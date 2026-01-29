@@ -1,0 +1,11 @@
+Patient: Daisy
+Lab: Specialty Lab
+Date: 2025-07-07
+WBC: 7.2 x10^9/L (4.0-11.0)
+Creatinine 0.9 mg/dL
+Sodium: 140 mmol/L
+Calcium 9.2 mg/dL (8.6-10.2)
+Lipid Panel
+  Total Cholesterol 190 mg/dL 125-200
+  HDL 55 mg/dL 40-60
+  LDL: 110 mg/dL 0-130
