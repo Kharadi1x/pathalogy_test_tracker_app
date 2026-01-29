@@ -16,6 +16,12 @@ Quick start
 5. Seed admin user (optional): `cd backend && ADMIN_EMAIL=admin@example.com ADMIN_PASS=admin123 pnpm prisma db seed`
 6. Start dev servers (if desired): `pnpm -w dev`
 
+Background worker
+
+- Requires Redis: set `REDIS_URL` (e.g., `redis://localhost:6379`) and optionally `OCR_URL` for OCR service host.
+- To run worker locally: `cd backend && node dist/queue/index.js` (or run via ts-node in dev)
+- The upload endpoint enqueues jobs and you can check status at `/api/jobs/:id`
+
 Authentication
 
 - Register: POST `/api/auth/register` { email, name, password, role }
