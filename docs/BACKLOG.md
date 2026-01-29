@@ -6,8 +6,8 @@ P0 - Ingestion & Storage
 - Implement file upload endpoint with OCR pipeline (backend + OCR service) ✅ (stubbed)
 - Store extracted structured tests: Test name, result, reference range, date, linked to Patient (encrypted name)
 - Patient history page + charts (frontend) ✅ (starter page)
-- Authentication + role-based access (Admin vs Patient)
-- Field-level encryption (AES-256), masked patient name with timed reveal
+- Authentication + role-based access (Admin vs Patient) ✅ (basic register/login + middleware implemented)
+- Field-level encryption (AES-256), masked patient name with timed reveal ✅ (helpers + reveal API implemented)
 
 P1 - Security & Compliance
 - 2FA (TOTP) and Google OAuth stub
