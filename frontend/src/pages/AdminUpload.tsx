@@ -22,7 +22,10 @@ export default function AdminUpload() {
     form.append('dateOfTest', dateOfTest);
     form.append('patientName', patientName);
 
-    const res = await fetch('/api/upload', { method: 'POST', body: form });
+    const token = localStorage.getItem('token');
+    const headers: any = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch('/api/upload', { method: 'POST', body: form, headers });
     const json = await res.json();
     if (res.ok) setMessage('Upload queued successfully');
     else setMessage(json.error || 'Upload failed');

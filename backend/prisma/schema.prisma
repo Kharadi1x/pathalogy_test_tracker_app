@@ -7,13 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  PATIENT
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String
-  role      String   @default("patient")
+  role      Role     @default(PATIENT)
   password  String
+  tfaSecret String?  // for TOTP 2FA (optional)
   createdAt DateTime @default(now())
+  auditLogs AuditLog[]
 }
 
 model Patient {
@@ -44,6 +51,7 @@ model Test {
 model AuditLog {
   id        Int      @id @default(autoincrement())
   userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
   action    String
   details   String?
   createdAt DateTime @default(now())
