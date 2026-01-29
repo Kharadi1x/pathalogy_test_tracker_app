@@ -11,9 +11,13 @@ P0 - Ingestion & Storage
 
 P1 - Security & Compliance
 - 2FA (TOTP) and Google OAuth stub
-- Audit logs for uploads/edits
+- Audit logs for uploads/edits ✅ (audit entries created by worker)
 - Secure key management (GCP Secret Manager or Vault)
 - Add e2e tests and attack surface review
+
+P0 - Background processing
+- Add background worker (BullMQ) to process uploaded files and call OCR ✅ (worker stub added)
+- Add job status endpoint `/api/jobs/:id` ✅
 
 P2 - UX & Scale
 - Notifications (email/SMS), export (PDF/CSV)
